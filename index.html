@@ -237,7 +237,12 @@ table.rt .sm{font-size:11px;color:var(--dim)}
 .sim-out .f{font-size:11px;color:#A9AEAC;font-variant-numeric:tabular-nums;line-height:1.5}
 
 footer{max-width:1080px;margin:0 auto;padding:0 24px 46px;font-size:11px;color:#A2A7A2;line-height:1.8}
-footer .fr{display:flex;justify-content:space-between;gap:16px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap}
+footer .fr{display:flex;justify-content:space-between;gap:16px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.ver{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;color:#8B918D;border-radius:3px;padding:3px 9px;font-size:11px;letter-spacing:.06em;font-family:"Barlow Condensed",ui-sans-serif,sans-serif;font-weight:600;font-variant-numeric:tabular-nums;transition:border-color .12s,color .12s;white-space:nowrap}
+.ver:hover{border-color:#BFC3BE;color:var(--ink)}
+.ver-dot{width:6px;height:6px;border-radius:50%;background:#3E9B52;box-shadow:0 0 0 2px rgba(62,155,82,.16);flex:none}
+.ver-dot.stale{background:var(--red);box-shadow:0 0 0 2px rgba(222,42,32,.16)}
+.ver-dot.checking{background:#C7A100;box-shadow:0 0 0 2px rgba(199,161,0,.16)}
 
 /* toast */
 .toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);background:var(--ink);color:#F2F3F1;padding:10px 14px;border-radius:5px;font-size:12.5px;box-shadow:0 10px 30px -8px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 32px)}
@@ -456,7 +461,10 @@ footer .fr{display:flex;justify-content:space-between;gap:16px;padding-top:14px;
 <footer>
   <div class="fr">
     <span id="ftNote">Honda South TC · 本工具為個人試算，實際獎金以公司公告與薪資單為準。資料只存在這台裝置的瀏覽器，不會上傳。</span>
-    <span>v1.0</span>
+    <button type="button" class="ver" id="verBtn" title="點一下可強制重新整理到最新版本">
+      <span class="ver-dot" id="verDot"></span>
+      <span id="verLabel">v1.1.0</span>
+    </button>
   </div>
 </footer>
 
@@ -994,9 +1002,92 @@ footer .fr{display:flex;justify-content:space-between;gap:16px;padding-top:14px;
 })();
 </script>
 <script>
-if('serviceWorker' in navigator && location.protocol === 'https:'){
-  window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
-}
+/* 版本資訊：每次改版遞增，畫面上會顯示 build 時間 */
+window.APP_VERSION = '1.1.0';
+window.APP_BUILD   = '2026-10-31 13:12';
+(function(){
+  var label = document.getElementById('verLabel');
+  var dot   = document.getElementById('verDot');
+  var btn   = document.getElementById('verBtn');
+  if(label) label.textContent = 'v' + window.APP_VERSION + ' · ' + window.APP_BUILD;
+
+  function mark(state){
+    if(!dot) return;
+    dot.className = 'ver-dot' + (state ? ' ' + state : '');
+  }
+
+  /* 點版本號：清掉所有快取並重新載入（資料不受影響） */
+  if(btn){
+    btn.addEventListener('click', function(){
+      if(!confirm('強制重新整理到最新版本？\n（銷售紀錄不會消失）')) return;
+      mark('checking');
+      var jobs = [];
+      if(window.caches && caches.keys) jobs.push(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); }));
+      if('serviceWorker' in navigator && navigator.serviceWorker.getRegistrations){
+        jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); }));
+      }
+      Promise.all(jobs).then(function(){ location.reload(); }).catch(function(){ location.reload(); });
+    });
+  }
+
+  if(!('serviceWorker' in navigator) || location.protocol !== 'https:'){ mark(''); return; }
+
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').then(function(reg){
+      mark('');
+
+      function askVersion(worker){
+        return new Promise(function(res){
+          try{
+            var ch = new MessageChannel(), done = false;
+            ch.port1.onmessage = function(e){ done = true; res(e.data && e.data.version || null); };
+            worker.postMessage({type:'VERSION'}, [ch.port2]);
+            setTimeout(function(){ if(!done) res(null); }, 2500);
+          }catch(err){ res(null); }
+        });
+      }
+
+      function onInstalled(worker){
+        if(!navigator.serviceWorker.controller) return; // 首次安裝，無需提示
+        askVersion(worker).then(function(v){
+          var now = 'v' + window.APP_VERSION;
+          var txt = v && ('v' + v) !== now ? '有新版本 v' + v + '（目前 ' + now + '）' : '有新版本可用（目前 ' + now + '）';
+          mark('stale');
+          var t = document.getElementById('toast');
+          if(!t) return;
+          t.innerHTML = '<span>' + txt + '</span>';
+          var b = document.createElement('button');
+          b.type = 'button'; b.textContent = '重新載入';
+          b.onclick = function(){ worker.postMessage('SKIP_WAITING'); };
+          t.appendChild(b);
+          t.classList.add('show');
+        });
+      }
+
+      reg.addEventListener('updatefound', function(){
+        var w = reg.installing;
+        if(!w) return;
+        w.addEventListener('statechange', function(){
+          if(w.state === 'installed') onInstalled(w);
+        });
+      });
+
+      function check(){
+        if(document.visibilityState === 'visible') reg.update().catch(function(){});
+      }
+      document.addEventListener('visibilitychange', check);
+      setInterval(check, 10 * 60 * 1000);
+      setTimeout(check, 4000);
+    }).catch(function(){});
+  });
+
+  var reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if(reloading) return;
+    reloading = true;
+    location.reload();
+  });
+})();
 </script>
 </body>
 </html>
