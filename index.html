@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>新車銷售獎金計算機</title>
+<meta name="theme-color" content="#14161A">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="銷售獎金">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="新車銷售點數級距獎金計算機：登錄每台車即時算出可請領金額，並保留銷售紀錄。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14161A;
+  --ink-2:#1B1E23;
+  --ink-3:#0F1114;
+  --paper:#F1F2F0;
+  --card:#FFFFFF;
+  --line:#E3E5E1;
+  --line-2:#EDEEEA;
+  --dim:#6B7278;
+  --dim-2:#9AA0A6;
+  --red:#DE2A20;
+  --red-deep:#B02019;
+  --red-tint:#FBEEEC;
+  --t0:#5A626B;
+  --t1:#8E3B33;
+  --t2:#BC2A22;
+  --t3:#E0231F;
+  --r:6px;
+  --shadow:0 1px 2px rgba(20,22,26,.05), 0 6px 18px -12px rgba(20,22,26,.18);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei","Hiragino Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:14px;line-height:1.65;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+button{font-family:inherit;cursor:pointer}
+input{font-family:inherit}
+.num{font-family:"Barlow Condensed",ui-sans-serif,system-ui,sans-serif;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.015em}
+.tnum{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ══ HERO / 儀表區 ══ */
+.hero{background:linear-gradient(178deg,#191C21 0%,#14161A 42%,#0F1114 100%);color:#F4F5F3;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--red) 0%,#7A1812 46%,rgba(255,255,255,.08) 100%)}
+.hero-in{max-width:1080px;margin:0 auto;padding:22px 24px 26px}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-size:13px;letter-spacing:.02em;color:#D8DBD8}
+.brand-mark{display:grid;place-items:center;width:26px;height:26px;border:1.5px solid var(--red);color:#fff;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:15px;line-height:1;padding-top:1px}
+.brand b{font-weight:700;color:#fff}
+.brand span.sep{color:#4C5259}
+.brand .sub{color:#8A9096;font-size:12px}
+
+.seg{display:inline-flex;padding:2px;border:1px solid rgba(255,255,255,.14);border-radius:3px;background:rgba(255,255,255,.04)}
+.seg button{background:none;border:0;color:#9DA3A9;font-size:12px;padding:5px 12px;border-radius:2px;letter-spacing:.02em;line-height:1.4;transition:color .15s,background .15s}
+.seg button.on{background:#F4F5F3;color:var(--ink);font-weight:600}
+.seg button:not(.on):hover{color:#E6E8E5}
+
+.eyebrow{font-size:11px;letter-spacing:.18em;color:#8A9096;text-transform:uppercase;font-weight:500}
+.eyebrow b{color:#C9CDCB;font-weight:600;letter-spacing:.1em}
+
+.stats{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:0;margin:14px 0 22px;align-items:end}
+.stat{padding:0 20px;border-left:1px solid rgba(255,255,255,.1)}
+.stat:first-child{padding-left:0;border-left:0}
+.stat-label{font-size:11.5px;color:#8A9096;letter-spacing:.08em;margin-bottom:2px}
+.stat-value{font-family:"Barlow Condensed",ui-sans-serif,sans-serif;font-weight:700;font-size:42px;line-height:1.05;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:0}
+.stat-main .stat-value{font-size:clamp(40px,7vw,62px)}
+.stat-value .cur{font-size:.62em;color:#8A9096;margin-right:1px;vertical-align:.06em}
+.stat-value .unit{font-size:.42em;color:#8A9096;margin-left:3px;font-weight:500;letter-spacing:.06em;font-family:inherit}
+.stat-off .stat-value{color:#767C82}
+
+/* 級距刻度尺 */
+.scale{margin:40px 0 0;position:relative}
+.scale-track{position:relative;height:54px}
+.bands{display:flex;height:100%;border-radius:3px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.band{position:relative;height:100%;display:flex;flex-direction:column;justify-content:center;padding:0 8px;overflow:hidden;border-right:1px solid rgba(0,0,0,.28)}
+.band:last-child{border-right:0}
+.band .b-range{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:15px;line-height:1.1;color:#fff;letter-spacing:.02em;white-space:nowrap}
+.band .b-rate{font-size:10px;line-height:1.3;color:rgba(255,255,255,.72);white-space:nowrap;letter-spacing:.02em}
+.band.t0{background:var(--t0)}
+.band.t1{background:var(--t1)}
+.band.t2{background:var(--t2)}
+.band.t3{background:var(--t3)}
+.veil{position:absolute;top:0;bottom:0;right:0;background:rgba(15,17,20,.76);transition:left .55s cubic-bezier(.22,.7,.2,1);pointer-events:none}
+.needle{position:absolute;top:-6px;bottom:-6px;width:2px;background:#fff;transition:left .55s cubic-bezier(.22,.7,.2,1);pointer-events:none;z-index:2;box-shadow:0 0 0 1px rgba(0,0,0,.45),0 0 16px rgba(255,255,255,.35)}
+.needle .nl{position:absolute;top:-25px;left:0;transform:translateX(-50%);font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:15px;color:#fff;background:#1B1E23;border:1px solid rgba(255,255,255,.2);padding:0 7px;border-radius:2px;line-height:1.4;white-space:nowrap;letter-spacing:.03em}
+.needle .nl::after{content:"";position:absolute;left:50%;bottom:-5px;width:0;height:0;border:4px solid transparent;border-top-color:rgba(255,255,255,.2);transform:translateX(-50%)}
+.needle .nl.fl::after{display:none}
+.needle.jump{animation:needleGlow .9s ease-out}
+@keyframes needleGlow{0%{box-shadow:0 0 0 1px rgba(0,0,0,.45),0 0 0 rgba(255,255,255,0)}30%{box-shadow:0 0 0 1px rgba(0,0,0,.45),0 0 26px 4px rgba(224,35,31,.9)}100%{box-shadow:0 0 0 1px rgba(0,0,0,.45),0 0 16px rgba(255,255,255,.35)}}
+
+.scale-axis{position:relative;height:18px;margin-top:7px}
+.scale-axis span{position:absolute;top:0;transform:translateX(-50%);font-family:"Barlow Condensed",sans-serif;font-size:11px;color:#6E747B;letter-spacing:.04em}
+.scale-legend{display:none}
+
+.next{display:flex;gap:9px;align-items:flex-start;margin-top:16px;padding:9px 12px;background:rgba(255,255,255,.045);border-left:2px solid var(--red);border-radius:0 3px 3px 0;font-size:12.5px;color:#B7BCB9;line-height:1.55}
+.next b{color:#fff;font-weight:600;font-variant-numeric:tabular-nums}
+.next .nt-gain{color:#FF8C7F;font-weight:600}
+.next.done{border-left-color:#4C7A50}
+
+/* ══ 版面 ══ */
+main{max-width:1080px;margin:26px auto 0;padding:0 24px 40px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:18px;align-items:start}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.card h2{margin:0;font-size:14px;font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:8px}
+.h2-note{font-size:11.5px;font-weight:400;color:var(--dim-2);letter-spacing:.02em}
+.card-head{padding:16px 18px 14px;border-bottom:1px solid var(--line-2)}
+
+/* 表單 */
+.form-card{padding:18px}
+.form-card h2{margin-bottom:14px}
+.group{margin-bottom:14px}
+.group-head{display:flex;align-items:center;gap:7px;font-size:11.5px;letter-spacing:.08em;color:var(--dim);margin-bottom:8px;font-weight:600}
+.group-head em{font-style:normal;font-weight:400;color:var(--dim-2);letter-spacing:.02em;font-size:11px}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.dot-2{background:var(--t3)}
+.dot-1{background:var(--t0)}
+.chips{display:grid;gap:6px}
+.chips.two{grid-template-columns:repeat(3,minmax(0,1fr))}
+.chips.one{grid-template-columns:repeat(3,minmax(0,1fr))}
+.chip{background:#fff;border:1px solid var(--line);border-radius:4px;padding:9px 10px 8px;text-align:left;display:flex;flex-direction:column;gap:1px;transition:border-color .12s,background .12s,transform .12s;min-width:0}
+.chip:hover{border-color:#C3C7C1;background:#FCFCFB}
+.chip:active{transform:scale(.985)}
+.chip .m{font-weight:700;font-size:13.5px;letter-spacing:.02em;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip .p{font-size:10.5px;color:var(--dim-2);letter-spacing:.06em;line-height:1.3}
+.chip[aria-pressed="true"]{border-color:var(--red);background:var(--red-tint);box-shadow:inset 0 0 0 1px var(--red)}
+.chip[aria-pressed="true"] .m{color:var(--red-deep)}
+.chip[aria-pressed="true"] .p{color:var(--red)}
+
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 14px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field.wide{grid-column:1 / -1}
+.field label{font-size:11px;letter-spacing:.08em;color:var(--dim);font-weight:600}
+.field input{width:100%;border:1px solid var(--line);border-radius:4px;padding:8px 10px;font-size:13.5px;color:var(--ink);background:#fff;line-height:1.4}
+.field input:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(20,22,26,.07)}
+.field input::placeholder{color:#B6BAB8}
+
+.stepper{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:4px;overflow:hidden;height:37px;background:#fff}
+.stepper button{width:30px;border:0;background:#FAFAF8;color:var(--dim);font-size:15px;line-height:1;display:grid;place-items:center;transition:background .12s,color .12s}
+.stepper button:hover{background:#F0F1EE;color:var(--ink)}
+.stepper input{flex:1;min-width:0;border:0;border-left:1px solid var(--line-2);border-right:1px solid var(--line-2);text-align:center;font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:16px;padding:0;color:var(--ink);background:#fff}
+.stepper input:focus{outline:none;background:#FBFBFA}
+
+/* 小票 */
+.quote{border:1px solid var(--line);border-radius:4px;background:#FAFAF8;padding:12px 13px 11px;margin-bottom:12px}
+.q-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.q-label{font-size:11.5px;color:var(--dim);letter-spacing:.06em;font-weight:600}
+.q-money{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:30px;line-height:1;color:var(--red);letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.q-money.zero{color:#A9AEAC}
+.q-calc{margin-top:8px;padding-top:8px;border-top:1px dashed #DCDEDA;font-size:12px;color:var(--dim);line-height:1.6;font-variant-numeric:tabular-nums}
+.q-calc b{color:var(--ink);font-weight:600}
+.q-jump{margin-top:6px;font-size:11.5px;color:var(--red);font-weight:600;display:none;line-height:1.5}
+.q-jump.show{display:block}
+.q-hint{font-size:11.5px;color:#A9AEAC;text-align:center;padding:6px 0 0}
+
+.btn-primary{width:100%;border:0;border-radius:4px;background:var(--ink);color:#fff;font-size:14px;font-weight:700;letter-spacing:.06em;padding:12px;transition:background .14s,transform .1s,opacity .14s}
+.btn-primary:hover:not(:disabled){background:#000}
+.btn-primary:active:not(:disabled){transform:translateY(1px)}
+.btn-primary:disabled{background:#D9DBD7;color:#9CA19E;cursor:not-allowed}
+
+/* 紀錄 */
+.ledger-card{overflow:hidden}
+.ledger-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line-2);flex-wrap:wrap}
+.count{font-family:"Barlow Condensed",sans-serif;font-size:12.5px;color:var(--dim-2);font-weight:600;letter-spacing:.03em;background:#F4F5F2;padding:1px 7px;border-radius:20px}
+.ledger-tools{display:flex;gap:6px}
+.ledger-tools button{border:1px solid var(--line);background:#fff;color:var(--dim);font-size:11.5px;padding:4px 9px;border-radius:3px;letter-spacing:.03em;transition:border-color .12s,color .12s}
+.ledger-tools button:hover{border-color:#C0C4BE;color:var(--ink)}
+.ledger-tools button.danger:hover{border-color:var(--red);color:var(--red)}
+.ledger-sum{display:flex;gap:14px;padding:9px 16px;background:#FAFAF8;border-bottom:1px solid var(--line-2);font-size:11.5px;color:var(--dim);letter-spacing:.03em;flex-wrap:wrap}
+.ledger-sum b{font-family:"Barlow Condensed",sans-serif;font-size:14px;color:var(--ink);font-weight:700;margin-left:2px;letter-spacing:.02em}
+
+.list-head{display:grid;grid-template-columns:60px minmax(0,1fr) 44px 92px 26px;gap:8px;padding:7px 16px;font-size:10.5px;letter-spacing:.1em;color:#AEB2AE;border-bottom:1px solid var(--line-2)}
+.list-head span:nth-child(4){text-align:right}
+.rec-list{max-height:430px;overflow-y:auto;overscroll-behavior:contain}
+.rec{display:grid;grid-template-columns:60px minmax(0,1fr) 44px 92px 26px;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid #F2F3F0;font-size:12.5px;transition:background .12s}
+.rec:hover{background:#FBFBFA}
+.rec:last-child{border-bottom:0}
+.c-date{display:flex;flex-direction:column;line-height:1.25}
+.c-date .d{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:14px;letter-spacing:.02em}
+.c-date .y{font-size:9.5px;color:#B0B4B0;letter-spacing:.04em}
+.c-model{min-width:0;display:flex;flex-direction:column;line-height:1.3}
+.c-model .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-model .nt{font-size:10.5px;color:#AEB2AE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-pts{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:14px;color:var(--dim);text-align:center;display:flex;align-items:baseline;justify-content:center;gap:1px}
+.c-pts i{font-family:inherit;font-style:normal;font-size:10px;font-weight:500;color:#B0B4B0}
+.c-bonus{text-align:right;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;line-height:1.1;display:flex;flex-direction:column;align-items:flex-end}
+.c-bonus.zero{color:#B0B4B0}
+.c-bonus .jt{font-family:inherit;font-size:9px;font-weight:600;letter-spacing:.06em;color:#fff;background:var(--red);padding:0 4px;border-radius:2px;margin-top:2px;line-height:1.5}
+.c-del{border:0;background:none;color:#C6CAC5;font-size:13px;line-height:1;padding:4px;border-radius:3px;transition:color .12s,background .12s;justify-self:end}
+.c-del:hover{color:var(--red);background:var(--red-tint)}
+.month-head{display:flex;align-items:baseline;justify-content:space-between;padding:7px 16px;background:#F5F6F3;border-bottom:1px solid var(--line-2);font-size:11px;font-weight:700;letter-spacing:.1em;color:#7B817E}
+.month-head span{font-weight:500;letter-spacing:.02em;color:#9AA09C;font-variant-numeric:tabular-nums}
+.empty{padding:34px 20px 38px;text-align:center}
+.empty .e1{font-size:13px;color:var(--dim);margin-bottom:3px}
+.empty .e2{font-size:11.5px;color:#AFB3AF}
+.empty .bar{width:56px;height:3px;background:var(--red);margin:0 auto 14px;opacity:.85}
+
+/* 規則 / 試算 */
+.rules-card{margin-top:18px;display:grid;grid-template-columns:1.25fr .75fr;overflow:hidden}
+.rules-left{padding:20px 22px;border-right:1px solid var(--line-2)}
+.rules-right{padding:20px 22px;background:#FAFAF8}
+.rules-card h2{margin-bottom:14px}
+table.rt{width:100%;border-collapse:collapse;font-size:12.5px}
+table.rt th{text-align:left;font-size:10.5px;letter-spacing:.08em;color:#AEB2AE;font-weight:600;padding:0 8px 7px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+table.rt td{padding:9px 8px 9px 0;border-bottom:1px solid #F2F3F0;vertical-align:middle}
+table.rt tr:last-child td{border-bottom:0}
+table.rt .tk{font-family:"Barlow Condensed",sans-serif;font-weight:700;color:#C4C8C3;font-size:12px;width:18px}
+table.rt .rr{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:13.5px;white-space:nowrap}
+table.rt .rt2{font-variant-numeric:tabular-nums;color:var(--dim);font-size:11.5px;line-height:1.55}
+table.rt .sm{font-size:11px;color:var(--dim)}
+.note{margin:14px 0 0;font-size:11.5px;color:var(--dim);line-height:1.7;padding-left:10px;border-left:2px solid var(--line)}
+.note b{color:var(--ink);font-weight:600}
+
+.sim-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.sim-row .lb{font-size:12px;color:var(--ink)}
+.sim-row .lb span{color:var(--dim-2);font-size:11px;margin-left:4px}
+.sim-row .stepper{width:104px;height:32px}
+.sim-row .stepper input{font-size:15px}
+.sim-out{margin-top:16px;padding-top:14px;border-top:1px dashed #DCDEDA}
+.sim-out .n{font-size:11.5px;color:var(--dim);letter-spacing:.05em;font-variant-numeric:tabular-nums}
+.sim-out .m{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:40px;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.sim-out .f{font-size:11px;color:#A9AEAC;font-variant-numeric:tabular-nums;line-height:1.5}
+
+footer{max-width:1080px;margin:0 auto;padding:0 24px 46px;font-size:11px;color:#A2A7A2;line-height:1.8}
+footer .fr{display:flex;justify-content:space-between;gap:16px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);background:var(--ink);color:#F2F3F1;padding:10px 14px;border-radius:5px;font-size:12.5px;box-shadow:0 10px 30px -8px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 32px)}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast b{color:#fff;font-weight:600;font-variant-numeric:tabular-nums}
+.toast button{border:0;background:rgba(255,255,255,.14);color:#fff;font-size:11.5px;padding:3px 9px;border-radius:3px;letter-spacing:.04em;white-space:nowrap}
+.toast button:hover{background:rgba(255,255,255,.24)}
+
+@media (max-width:900px){
+  .cols{grid-template-columns:minmax(0,1fr)}
+  .rules-card{grid-template-columns:1fr}
+  .rules-left{border-right:0;border-bottom:1px solid var(--line-2)}
+  .rec-list{max-height:none}
+}
+@media (max-width:560px){
+  .hero-in{padding:18px 16px 20px}
+  main{padding:0 16px 32px;margin-top:18px}
+  footer{padding:0 16px 38px}
+  .stats{grid-template-columns:1fr 1fr;gap:14px 0;margin-bottom:18px}
+  .stat{padding:0 14px}
+  .stat-main{grid-column:1 / -1;padding-left:0;border-left:0}
+  .stat:nth-child(2){padding-left:0}
+  .stat-value{font-size:34px}
+  .stat-main .stat-value{font-size:46px}
+  .band .b-rate{display:none}
+  .band{padding:0 6px}
+  .band .b-range{font-size:13px}
+  .scale-legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:9px;font-size:10px;color:#8A9096;letter-spacing:.02em}
+  .scale-legend i{display:inline-block;width:7px;height:7px;border-radius:1px;margin-right:4px;vertical-align:0}
+  .chips.two,.chips.one{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .list-head{grid-template-columns:48px minmax(0,1fr) 78px 22px;padding:7px 14px}
+  .list-head span:nth-child(3){display:none}
+  .rec{grid-template-columns:48px minmax(0,1fr) 78px 22px;padding:10px 14px;row-gap:3px}
+  .c-pts{display:none}
+  .c-bonus{font-size:15px}
+  .ledger-head{padding:12px 14px}
+  .ledger-sum{padding:8px 14px;gap:10px}
+  .rules-left,.rules-right{padding:16px}
+  table.rt th{letter-spacing:0;font-size:10px}
+  table.rt td{padding:8px 6px 8px 0}
+  table.rt .rt2{font-size:11px}
+  .form-card{padding:16px}
+  .toast{bottom:14px;font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-in">
+    <div class="hero-top">
+      <div class="brand">
+        <span class="brand-mark">H</span>
+        <b>新車銷售獎金</b><span class="sep">/</span><span class="sub">點數級距試算</span>
+      </div>
+      <div class="seg" id="periodSeg" role="group" aria-label="累計方式">
+        <button type="button" data-period="all" class="on" aria-pressed="true">不分月份累計</button>
+        <button type="button" data-period="month" aria-pressed="false">每月歸零</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat stat-main">
+        <div class="stat-label" id="lblBonus">累計獎金</div>
+        <div class="stat-value"><span class="cur">$</span><span id="heroBonus">0</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label" id="lblPts">累計點數</div>
+        <div class="stat-value"><span id="heroPts">0</span><span class="unit">點</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">目前每點</div>
+        <div class="stat-value"><span class="cur">$</span><span id="heroRate">0</span></div>
+      </div>
+    </div>
+
+    <div class="scale">
+      <div class="scale-track">
+        <div class="bands" id="bands"></div>
+        <div class="veil" id="veil"></div>
+        <div class="needle" id="needle"><span class="nl" id="needleLabel">0 點</span></div>
+      </div>
+      <div class="scale-axis" id="scaleAxis"></div>
+      <div class="scale-legend" id="scaleLegend"></div>
+    </div>
+
+    <div class="next" id="nextStrip"></div>
+  </div>
+</header>
+
+<main>
+  <div class="cols">
+
+    <section class="card form-card" aria-labelledby="formTitle">
+      <h2 id="formTitle">登錄一台車 <span class="h2-note">選車種就即時算出本台獎金</span></h2>
+
+      <div class="group">
+        <div class="group-head"><span class="dot dot-2"></span>2 點車種 <em>油電</em></div>
+        <div class="chips two" id="chipsHev"></div>
+      </div>
+      <div class="group">
+        <div class="group-head"><span class="dot dot-1"></span>1 點車種 <em>汽油 · CIVIC · ZR-V</em></div>
+        <div class="chips one" id="chipsGas"></div>
+      </div>
+
+      <div class="fields">
+        <div class="field">
+          <label for="fDate">交車日期</label>
+          <input type="date" id="fDate">
+        </div>
+        <div class="field">
+          <label for="fQty">台數</label>
+          <div class="stepper">
+            <button type="button" data-step="-1" data-for="fQty" aria-label="減少台數">−</button>
+            <input type="number" id="fQty" value="1" min="1" max="99" inputmode="numeric" aria-label="台數">
+            <button type="button" data-step="1" data-for="fQty" aria-label="增加台數">+</button>
+          </div>
+        </div>
+        <div class="field wide">
+          <label for="fNote">備註（選填）</label>
+          <input type="text" id="fNote" placeholder="客戶姓名、訂單號或車色">
+        </div>
+      </div>
+
+      <div class="quote">
+        <div class="q-top">
+          <span class="q-label">本台可請領</span>
+          <span class="q-money zero" id="qMoney">$0</span>
+        </div>
+        <div class="q-calc" id="qCalc">先在上面選一個車種</div>
+        <div class="q-jump" id="qJump"></div>
+      </div>
+
+      <button type="button" class="btn-primary" id="btnAdd" disabled>登錄這筆</button>
+    </section>
+
+    <section class="card ledger-card" aria-labelledby="ledgerTitle">
+      <div class="ledger-head">
+        <h2 id="ledgerTitle">銷售紀錄 <span class="count" id="recCount">0 筆</span></h2>
+        <div class="ledger-tools">
+          <button type="button" id="btnExport">匯出</button>
+          <button type="button" id="btnImport">匯入</button>
+          <button type="button" id="btnClear" class="danger">清除</button>
+        </div>
+      </div>
+      <div class="ledger-sum" id="ledgerSum"></div>
+      <div class="list-head"><span>日期</span><span>車種</span><span>點數</span><span>本台獎金</span><span></span></div>
+      <div class="rec-list" id="recList"></div>
+      <input type="file" id="fileInput" accept=".json,application/json" hidden>
+    </section>
+
+  </div>
+
+  <section class="card rules-card">
+    <div class="rules-left">
+      <h2>級距規則</h2>
+      <table class="rt">
+        <thead>
+          <tr><th></th><th>累計點數</th><th>每點獎金</th><th>級距總額</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="tk">01</td><td class="rr">0 – 4 點</td><td class="rr">$0</td>
+            <td class="rt2">0 元（未達門檻）</td>
+          </tr>
+          <tr>
+            <td class="tk">02</td><td class="rr">5 – 7 點</td><td class="rr">$2,500</td>
+            <td class="rt2">5 點 12,500　6 點 15,000　7 點 17,500</td>
+          </tr>
+          <tr>
+            <td class="tk">03</td><td class="rr">8 – 10 點</td><td class="rr">$4,500</td>
+            <td class="rt2">8 點 36,000　9 點 40,500　10 點 45,000</td>
+          </tr>
+          <tr>
+            <td class="tk">04</td><td class="rr">11 點以上</td><td class="rr">$6,500</td>
+            <td class="rt2">11 點 71,500 起，每多 1 點 +6,500</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">跨過門檻時，<b>前面所有點數一併用新費率重算</b>。所以第 8 點會一次多出 <b>$18,500</b>：7 點只值 17,500，8 點卻值 36,000。</p>
+      <p class="note"><b>2 點</b>：CR-V／HR-V／FIT 油電　　<b>1 點</b>：CR-V／HR-V／FIT 汽油、CIVIC、ZR-V</p>
+    </div>
+
+    <div class="rules-right">
+      <h2>整月試算 <span class="h2-note">假設這個月總共賣</span></h2>
+      <div class="sim-row">
+        <span class="lb">油電車<span>2 點</span></span>
+        <div class="stepper">
+          <button type="button" data-step="-1" data-for="simHev" aria-label="減少油電車台數">−</button>
+          <input type="number" id="simHev" value="0" min="0" max="60" inputmode="numeric" aria-label="油電車台數">
+          <button type="button" data-step="1" data-for="simHev" aria-label="增加油電車台數">+</button>
+        </div>
+      </div>
+      <div class="sim-row">
+        <span class="lb">汽油車<span>1 點</span></span>
+        <div class="stepper">
+          <button type="button" data-step="-1" data-for="simGas" aria-label="減少汽油車台數">−</button>
+          <input type="number" id="simGas" value="0" min="0" max="60" inputmode="numeric" aria-label="汽油車台數">
+          <button type="button" data-step="1" data-for="simGas" aria-label="增加汽油車台數">+</button>
+        </div>
+      </div>
+      <div class="sim-out">
+        <div class="n" id="simPts">0 點</div>
+        <div class="m" id="simMoney">$0</div>
+        <div class="f" id="simFormula">0–4 點不計獎金</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="fr">
+    <span id="ftNote">本工具為個人試算，實際獎金以公司公告與薪資單為準。資料只存在這台裝置的瀏覽器，不會上傳。</span>
+    <span>v1.0</span>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ── 規則資料 ───────────────────────────── */
+  var MODELS = [
+    {id:'crv-hev', code:'CR-V', type:'油電', pts:2},
+    {id:'hrv-hev', code:'HR-V', type:'油電', pts:2},
+    {id:'fit-hev', code:'FIT',  type:'油電', pts:2},
+    {id:'crv-gas', code:'CR-V', type:'汽油', pts:1},
+    {id:'hrv-gas', code:'HR-V', type:'汽油', pts:1},
+    {id:'fit-gas', code:'FIT',  type:'汽油', pts:1},
+    {id:'civic',   code:'CIVIC', type:'汽油', pts:1},
+    {id:'zrv',     code:'ZR-V', type:'汽油', pts:1}
+  ];
+  var M = {};
+  MODELS.forEach(function(m){ M[m.id] = m; });
+
+  /* 級距：由高到低，取第一個 p >= min */
+  var TIERS = [
+    {min:11, rate:6500},
+    {min:8,  rate:4500},
+    {min:5,  rate:2500},
+    {min:0,  rate:0}
+  ];
+  function rateOf(p){ for(var i=0;i<TIERS.length;i++){ if(p>=TIERS[i].min) return TIERS[i].rate; } return 0; }
+  function bonusOf(p){ return p * rateOf(p); }
+  function money(n){ return '$' + Math.round(n).toLocaleString('en-US'); }
+  function ptsOf(rec){ var m=M[rec.model]; return m ? m.pts * qtyOf(rec.qty) : 0; }
+  function qtyOf(q){ q = parseInt(q,10); if(isNaN(q)||q<1) q=1; if(q>99) q=99; return q; }
+
+  /* ── 日期 ───────────────────────────────── */
+  function pad(n){ return String(n).length<2 ? '0'+n : ''+n; }
+  function isoOf(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function todayISO(){ return isoOf(new Date()); }
+  function dateLabel(iso){ return iso.slice(5,7).replace(/^0/,'')+'/'+iso.slice(8,10).replace(/^0/,''); }
+  function monthLabel(iso){ return iso.slice(0,4)+' 年 '+parseInt(iso.slice(5,7),10)+' 月'; }
+
+  /* ── 狀態 ───────────────────────────────── */
+  var KEY = 'hondaBonus.ledger.v1';
+  var store = { records: [], period: 'all', seq: 1 };
+  var storageOK = true;
+  var picked = null;
+
+  function uid(){ return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      if(!raw) return;
+      var o = JSON.parse(raw);
+      if(!o || !Array.isArray(o.records)) return;
+      store.records = o.records.filter(function(r){ return r && M[r.model] && /^\d{4}-\d{2}-\d{2}$/.test(r.date||''); })
+        .map(function(r){
+          return { id: r.id || uid(), date: r.date, model: r.model, qty: qtyOf(r.qty), note: String(r.note||''), seq: parseInt(r.seq,10)||0 };
+        });
+      store.period = o.period === 'month' ? 'month' : 'all';
+      var maxSeq = 0;
+      store.records.forEach(function(r){ if(r.seq > maxSeq) maxSeq = r.seq; });
+      store.seq = maxSeq + 1;
+    }catch(e){ storageOK = false; }
+  }
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(store)); }
+    catch(e){
+      storageOK = false;
+      document.getElementById('ftNote').textContent = '這個瀏覽器無法儲存資料（可能開啟了無痕模式），重新整理後紀錄會消失。';
+    }
+  }
+
+  /* ── 累計邏輯 ───────────────────────────── */
+  function groupOf(date){ return store.period === 'month' ? date.slice(0,7) : 'ALL'; }
+
+  // 某個日期「登錄當下」為止的累計點數（含同日先前登錄的紀錄）
+  function cumThrough(date){
+    var g = groupOf(date), sum = 0;
+    for(var i=0;i<store.records.length;i++){
+      var r = store.records[i];
+      if(groupOf(r.date) === g && r.date <= date) sum += ptsOf(r);
+    }
+    return sum;
+  }
+
+  // 本期累計：不分月份=全部紀錄；每月歸零=本月全部紀錄
+  function currentStanding(){
+    var key = store.period === 'month' ? todayISO().slice(0,7) : null;
+    var sum = 0;
+    for(var i=0;i<store.records.length;i++){
+      var r = store.records[i];
+      if(key && r.date.slice(0,7) !== key) continue;
+      sum += ptsOf(r);
+    }
+    return sum;
+  }
+
+  // 全部紀錄逐筆試算（依日期、登錄順序）
+  function buildRows(){
+    var arr = store.records.slice().sort(function(a,b){
+      if(a.date !== b.date) return a.date < b.date ? -1 : 1;
+      return a.seq - b.seq;
+    });
+    var rows = [], cum = 0, g = null;
+    arr.forEach(function(r){
+      var gk = groupOf(r.date);
+      if(gk !== g){ g = gk; cum = 0; }
+      var pts = ptsOf(r);
+      var before = cum, after = cum + pts;
+      var b0 = bonusOf(before), b1 = bonusOf(after);
+      rows.push({
+        rec: r, group: gk, pts: pts, before: before, after: after,
+        bBefore: b0, bAfter: b1, bonus: b1 - b0,
+        jump: rateOf(after) > rateOf(before)
+      });
+      cum = after;
+    });
+    return rows;
+  }
+
+  /* ── 儀表板 ─────────────────────────────── */
+  var heroBonus = document.getElementById('heroBonus');
+  var heroPts   = document.getElementById('heroPts');
+  var heroRate  = document.getElementById('heroRate');
+  var bands     = document.getElementById('bands');
+  var veil      = document.getElementById('veil');
+  var needle    = document.getElementById('needle');
+  var needleLbl = document.getElementById('needleLabel');
+  var scaleAxis = document.getElementById('scaleAxis');
+  var scaleLg   = document.getElementById('scaleLegend');
+  var nextStrip = document.getElementById('nextStrip');
+
+  function renderScale(p){
+    var maxPts = Math.max(16, p + 3);
+    var defs = [
+      {n:5,              cls:'t0', range:'0–4',   rate:'$0'},
+      {n:3,              cls:'t1', range:'5–7',   rate:'$2,500／點'},
+      {n:3,              cls:'t2', range:'8–10',  rate:'$4,500／點'},
+      {n:maxPts - 11,    cls:'t3', range:'11+',   rate:'$6,500／點'}
+    ];
+    var html = '';
+    for(var i=0;i<defs.length;i++){
+      html += '<div class="band '+defs[i].cls+'" style="flex:'+defs[i].n+' 1 0">'+
+                '<span class="b-range">'+defs[i].range+'</span>'+
+                '<span class="b-rate">'+defs[i].rate+'</span>'+
+              '</div>';
+    }
+    bands.innerHTML = html;
+
+    var pct = (p + 0.5) / maxPts * 100;
+    if(pct > 99.5) pct = 99.5;
+    veil.style.left = pct + '%';
+    needle.style.left = pct + '%';
+    needleLbl.textContent = p + ' 點';
+    needleLbl.classList.remove('fl');
+    if(pct < 9){ needleLbl.style.transform = 'translateX(6px)'; needleLbl.classList.add('fl'); }
+    else if(pct > 91){ needleLbl.style.transform = 'translateX(-100%) translateX(-6px)'; needleLbl.classList.add('fl'); }
+    else { needleLbl.style.transform = 'translateX(-50%)'; }
+
+    // 軸刻度
+    var marks = [0,5,8,11,maxPts];
+    var ax = '';
+    marks.forEach(function(v){
+      var x = (v + 0.5) / maxPts * 100;
+      var tf = 'translateX(-50%)';
+      if(v === maxPts) tf = 'translateX(-100%)';
+      if(v === 0) tf = 'translateX(0)';
+      ax += '<span style="left:'+x+'%;transform:'+tf+'">'+v+'</span>';
+    });
+    scaleAxis.innerHTML = ax;
+
+    // 手機版圖例
+    scaleLg.innerHTML =
+      '<span><i style="background:var(--t0)"></i>0–4 點 $0</span>'+
+      '<span><i style="background:var(--t1)"></i>5–7 點 $2,500</span>'+
+      '<span><i style="background:var(--t2)"></i>8–10 點 $4,500</span>'+
+      '<span><i style="background:var(--t3)"></i>11+ 點 $6,500</span>';
+  }
+
+  function renderNext(p){
+    var th = null;
+    [5,8,11].forEach(function(t){ if(th === null && p < t) th = t; });
+    nextStrip.classList.remove('done');
+    if(th === null){
+      nextStrip.classList.add('done');
+      nextStrip.innerHTML = '<span>已在最高級距 <b>$6,500</b>／點 — 之後每多 1 點就是多 <b>$6,500</b>。</span>';
+      return;
+    }
+    var need = th - p;
+    var gain = bonusOf(th) - bonusOf(p);
+    var s = '<span>再 <b>' + need + ' 點</b>就跳到 <b>$' + rateOf(th).toLocaleString('en-US') + '／點</b>級距：總額 ' +
+            money(bonusOf(p)) + ' → <b>' + money(bonusOf(th)) + '</b>';
+    if(gain > 0) s += '，跳級一次多 <span class="nt-gain">' + money(gain) + '</span>';
+    s += '。</span>';
+    nextStrip.innerHTML = s;
+  }
+
+  function renderHero(){
+    var p = currentStanding();
+    heroBonus.textContent = Math.round(bonusOf(p)).toLocaleString('en-US');
+    heroPts.textContent = p;
+    heroRate.textContent = rateOf(p).toLocaleString('en-US');
+    var monthly = store.period === 'month';
+    document.getElementById('lblBonus').textContent = monthly ? '本月獎金' : '累計獎金';
+    document.getElementById('lblPts').textContent = monthly ? '本月點數' : '累計點數';
+    renderScale(p);
+    renderNext(p);
+  }
+
+  /* ── 車種按鈕 ───────────────────────────── */
+  function chipHTML(m){
+    return '<button type="button" class="chip" data-model="'+m.id+'" aria-pressed="false">'+
+             '<span class="m">'+m.code+'</span>'+
+             '<span class="p">'+m.type+' · '+m.pts+' 點</span>'+
+           '</button>';
+  }
+  function buildChips(){
+    document.getElementById('chipsHev').innerHTML = MODELS.filter(function(m){return m.pts===2;}).map(chipHTML).join('');
+    document.getElementById('chipsGas').innerHTML = MODELS.filter(function(m){return m.pts===1;}).map(chipHTML).join('');
+  }
+  function setPicked(id){
+    picked = id;
+    var chips = document.querySelectorAll('.chip');
+    for(var i=0;i<chips.length;i++){
+      chips[i].setAttribute('aria-pressed', chips[i].getAttribute('data-model') === id ? 'true' : 'false');
+    }
+    updateQuote();
+  }
+
+  /* ── 即時試算（小票） ───────────────────── */
+  var fDate = document.getElementById('fDate');
+  var fQty  = document.getElementById('fQty');
+  var fNote = document.getElementById('fNote');
+  var qMoney = document.getElementById('qMoney');
+  var qCalc  = document.getElementById('qCalc');
+  var qJump  = document.getElementById('qJump');
+  var btnAdd = document.getElementById('btnAdd');
+
+  function updateQuote(){
+    if(!picked){
+      qMoney.textContent = '$0';
+      qMoney.classList.add('zero');
+      qCalc.textContent = '先在上面選一個車種';
+      qJump.classList.remove('show');
+      btnAdd.disabled = true;
+      return;
+    }
+    var date = fDate.value || todayISO();
+    var qty = qtyOf(fQty.value);
+    var pts = M[picked].pts * qty;
+    var before = cumThrough(date);
+    var after = before + pts;
+    var delta = bonusOf(after) - bonusOf(before);
+
+    qMoney.textContent = money(delta);
+    if(delta > 0) qMoney.classList.remove('zero'); else qMoney.classList.add('zero');
+
+    qCalc.innerHTML = '登錄前 <b>' + before + ' 點</b> · ' + money(bonusOf(before)) +
+                      '　→　登錄後 <b>' + after + ' 點</b> · ' + money(bonusOf(after));
+
+    if(rateOf(after) > rateOf(before)){
+      qJump.classList.add('show');
+      qJump.textContent = '跨過門檻：前面 ' + before + ' 點也會一併用 $' + rateOf(after).toLocaleString('en-US') + '／點 重算。';
+    } else {
+      qJump.classList.remove('show');
+    }
+    btnAdd.disabled = false;
+  }
+
+  /* ── 銷售紀錄 ───────────────────────────── */
+  var recList  = document.getElementById('recList');
+  var recCount = document.getElementById('recCount');
+  var ledgerSum = document.getElementById('ledgerSum');
+
+  function esc(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function recHTML(row){
+    var r = row.rec, m = M[r.model];
+    var sub = [];
+    if(qtyOf(r.qty) > 1) sub.push(qtyOf(r.qty) + ' 台');
+    if(r.note) sub.push(r.note);
+    var bonusCls = row.bonus > 0 ? 'c-bonus' : 'c-bonus zero';
+    var bonusTxt = (row.bonus > 0 ? '+' : '') + money(row.bonus);
+    return '<div class="rec">'+
+      '<div class="c-date"><span class="d">'+dateLabel(r.date)+'</span><span class="y">'+r.date.slice(0,4)+'</span></div>'+
+      '<div class="c-model"><span class="nm">'+esc(m.code)+' '+esc(m.type)+'</span>'+
+        (sub.length ? '<span class="nt">'+esc(sub.join(' · '))+'</span>' : '')+'</div>'+
+      '<div class="c-pts">'+row.pts+'<i>點</i></div>'+
+      '<div class="'+bonusCls+'">'+bonusTxt+(row.jump?'<span class="jt">跳級</span>':'')+'</div>'+
+      '<button type="button" class="c-del" data-del="'+r.id+'" aria-label="刪除這筆">✕</button>'+
+    '</div>';
+  }
+
+  function renderLedger(){
+    var rows = buildRows();
+    recCount.textContent = rows.length + ' 筆';
+
+    // 摘要
+    if(store.period === 'month'){
+      var cur = todayISO().slice(0,7);
+      var mine = rows.filter(function(x){ return x.group === cur; });
+      if(mine.length){
+        var last = mine[mine.length-1];
+        var units = 0; mine.forEach(function(x){ units += qtyOf(x.rec.qty); });
+        ledgerSum.innerHTML = '<span>'+monthLabel(cur+'')+'</span><span><b>'+units+'</b> 台</span><span><b>'+last.after+'</b> 點</span><span>累計 <b>'+money(last.bAfter)+'</b></span>';
+      }else{
+        ledgerSum.innerHTML = '<span>'+monthLabel(cur+'-01')+'　本月尚無紀錄</span>';
+      }
+    }else if(rows.length){
+      var l = rows[rows.length-1];
+      var u = 0; rows.forEach(function(x){ u += qtyOf(x.rec.qty); });
+      ledgerSum.innerHTML = '<span>共 <b>'+u+'</b> 台</span><span><b>'+l.after+'</b> 點</span><span>累計獎金 <b>'+money(l.bAfter)+'</b></span>';
+    }else{
+      ledgerSum.innerHTML = '<span>還沒有紀錄</span>';
+    }
+
+    if(!rows.length){
+      recList.innerHTML = '<div class="empty"><div class="bar"></div>'+
+        '<div class="e1">還沒有銷售紀錄</div>'+
+        '<div class="e2">在左邊選一個車種，就會先算出這台可請領多少</div></div>';
+      return;
+    }
+
+    var html = '', lastGroup = null;
+    for(var i=rows.length-1;i>=0;i--){
+      var row = rows[i];
+      if(store.period === 'month' && row.group !== lastGroup){
+        lastGroup = row.group;
+        var gRows = rows.filter(function(x){ return x.group === row.group; });
+        var gLast = gRows[gRows.length-1];
+        var gUnits = 0; gRows.forEach(function(x){ gUnits += qtyOf(x.rec.qty); });
+        html += '<div class="month-head"><span>'+monthLabel(row.group+'-01')+'</span>'+
+                '<span>'+gUnits+' 台 · '+gLast.after+' 點 · '+money(gLast.bAfter)+'</span></div>';
+      }
+      html += recHTML(row);
+    }
+    recList.innerHTML = html;
+  }
+
+  function renderAll(){
+    renderHero();
+    renderLedger();
+    updateQuote();
+  }
+
+  /* ── 新增 / 刪除 ────────────────────────── */
+  function addRecord(){
+    if(!picked) return;
+    var date = fDate.value || todayISO();
+    var qty = qtyOf(fQty.value);
+    var pts = M[picked].pts * qty;
+    var before = cumThrough(date);
+    var delta = bonusOf(before + pts) - bonusOf(before);
+    var jump = rateOf(before + pts) > rateOf(before);
+
+    var rec = { id: uid(), date: date, model: picked, qty: qty, note: fNote.value.trim(), seq: store.seq++ };
+    store.records.push(rec);
+    save();
+    renderAll();
+
+    if(jump){
+      needle.classList.remove('jump');
+      void needle.offsetWidth;
+      needle.classList.add('jump');
+    }
+
+    var name = M[picked].code + ' ' + M[picked].type + (qty > 1 ? ' ×' + qty : '');
+    toast('已登錄 ' + name + '　本台 <b>+' + money(delta) + '</b>', '復原', function(){
+      store.records = store.records.filter(function(r){ return r.id !== rec.id; });
+      save(); renderAll();
+    });
+
+    picked = null;
+    var chips = document.querySelectorAll('.chip');
+    for(var i=0;i<chips.length;i++) chips[i].setAttribute('aria-pressed','false');
+    fNote.value = '';
+    fQty.value = 1;
+    updateQuote();
+    fNote.focus();
+  }
+
+  /* ── Toast ──────────────────────────────── */
+  var toastEl = document.getElementById('toast');
+  var toastTimer = null;
+  function toast(html, actionLabel, action){
+    clearTimeout(toastTimer);
+    toastEl.innerHTML = '<span>' + html + '</span>';
+    if(actionLabel){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = actionLabel;
+      b.onclick = function(){ action(); hideToast(); };
+      toastEl.appendChild(b);
+    }
+    toastEl.classList.add('show');
+    toastTimer = setTimeout(hideToast, 5200);
+  }
+  function hideToast(){ toastEl.classList.remove('show'); }
+
+  /* ── 整月試算 ───────────────────────────── */
+  var simHev = document.getElementById('simHev');
+  var simGas = document.getElementById('simGas');
+  function renderSim(){
+    var h = parseInt(simHev.value,10) || 0, g = parseInt(simGas.value,10) || 0;
+    h = Math.max(0, Math.min(60, h)); g = Math.max(0, Math.min(60, g));
+    var p = h*2 + g;
+    var r = rateOf(p);
+    document.getElementById('simPts').textContent = p + ' 點（' + h + ' 台油電 + ' + g + ' 台汽油）';
+    document.getElementById('simMoney').textContent = money(bonusOf(p));
+    document.getElementById('simFormula').textContent = r === 0
+      ? '0–4 點不計獎金，再 ' + (5-p) + ' 點才進入級距'
+      : p + ' 點 × $' + r.toLocaleString('en-US') + '／點';
+  }
+
+  /* ── 匯出 / 匯入 / 清除 ─────────────────── */
+  function exportJSON(){
+    if(!store.records.length){ toast('目前沒有紀錄可以匯出'); return; }
+    var data = { app:'honda-bonus', version:1, exportedAt:new Date().toISOString(), period:store.period, records:store.records };
+    var blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '銷售紀錄-' + todayISO() + '.json';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    toast('已匯出 ' + store.records.length + ' 筆紀錄');
+  }
+
+  function importJSON(file){
+    var reader = new FileReader();
+    reader.onload = function(){
+      try{
+        var o = JSON.parse(String(reader.result));
+        var list = Array.isArray(o) ? o : (o && Array.isArray(o.records) ? o.records : null);
+        if(!list) throw new Error('格式不符');
+        var cleaned = list.filter(function(r){ return r && M[r.model] && /^\d{4}-\d{2}-\d{2}$/.test(r.date||''); })
+          .map(function(r){ return { id: uid(), date: r.date, model: r.model, qty: qtyOf(r.qty), note: String(r.note||''), seq: store.seq++ }; });
+        if(!cleaned.length) throw new Error('沒有可讀取的紀錄');
+        if(store.records.length && !confirm('匯入會覆蓋目前 ' + store.records.length + ' 筆紀錄（檔案內 ' + cleaned.length + ' 筆），確定嗎？')) return;
+        store.records = cleaned;
+        if(o && o.period === 'month') store.period = 'month';
+        save(); renderAll();
+        toast('已匯入 ' + cleaned.length + ' 筆紀錄');
+      }catch(err){
+        toast('匯入失敗：檔案格式不正確');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  /* ── 事件 ───────────────────────────────── */
+  document.addEventListener('click', function(e){
+    var chip = e.target.closest ? e.target.closest('.chip') : null;
+    if(chip){ setPicked(chip.getAttribute('data-model')); return; }
+
+    var step = e.target.closest ? e.target.closest('[data-step]') : null;
+    if(step){
+      var input = document.getElementById(step.getAttribute('data-for'));
+      var min = parseInt(input.min,10) || 0, max = parseInt(input.max,10) || 99;
+      var v = (parseInt(input.value,10) || 0) + parseInt(step.getAttribute('data-step'),10);
+      input.value = Math.max(min, Math.min(max, v));
+      input.dispatchEvent(new Event('input', {bubbles:true}));
+      return;
+    }
+
+    var del = e.target.closest ? e.target.closest('[data-del]') : null;
+    if(del){
+      var id = del.getAttribute('data-del');
+      var gone = store.records.filter(function(r){ return r.id === id; })[0];
+      if(!gone) return;
+      var nm = M[gone.model].code + ' ' + M[gone.model].type;
+      store.records = store.records.filter(function(r){ return r.id !== id; });
+      save(); renderAll();
+      toast('已刪除 ' + nm, '復原', function(){
+        store.records.push(gone); save(); renderAll();
+      });
+      return;
+    }
+  });
+
+  document.getElementById('periodSeg').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-period]');
+    if(!b) return;
+    store.period = b.getAttribute('data-period');
+    var all = this.querySelectorAll('button');
+    for(var i=0;i<all.length;i++){
+      var on = all[i] === b;
+      all[i].classList.toggle('on', on);
+      all[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    save(); renderAll();
+  });
+
+  fDate.addEventListener('change', updateQuote);
+  fDate.addEventListener('input', updateQuote);
+  fQty.addEventListener('input', updateQuote);
+  fQty.addEventListener('blur', function(){ fQty.value = qtyOf(fQty.value); updateQuote(); });
+  fNote.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); addRecord(); } });
+  btnAdd.addEventListener('click', addRecord);
+
+  simHev.addEventListener('input', renderSim);
+  simGas.addEventListener('input', renderSim);
+
+  document.getElementById('btnExport').addEventListener('click', exportJSON);
+  document.getElementById('btnImport').addEventListener('click', function(){ document.getElementById('fileInput').click(); });
+  document.getElementById('fileInput').addEventListener('change', function(e){
+    if(e.target.files && e.target.files[0]) importJSON(e.target.files[0]);
+    e.target.value = '';
+  });
+  document.getElementById('btnClear').addEventListener('click', function(){
+    if(!store.records.length){ toast('目前沒有紀錄'); return; }
+    if(!confirm('確定要清除全部 ' + store.records.length + ' 筆紀錄嗎？此動作無法復原。')) return;
+    store.records = [];
+    save(); renderAll();
+    toast('紀錄已清除');
+  });
+
+  /* ── 啟動 ───────────────────────────────── */
+  load();
+  fDate.value = todayISO();
+  buildChips();
+  renderAll();
+  renderSim();
+
+  if(!storageOK){
+    document.getElementById('ftNote').textContent = '這個瀏覽器無法儲存資料（可能開啟了無痕模式），重新整理後紀錄會消失。';
+  }
+  if(store.records.length === 0 && store.period === 'all'){
+    // 第一次使用：把目前級距顯示在紀錄區的空狀態即可
+  }
+})();
+</script>
+<script>
+if('serviceWorker' in navigator && location.protocol === 'https:'){
+  window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+}
+</script>
+</body>
+</html>
