@@ -65,6 +65,9 @@ input{font-family:inherit}
 .brand span.sep{color:#4C5259}
 .brand .sub{color:#8A9096;font-size:12px}
 
+.hero-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ver-hd{border-color:rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:#9DA3A9;padding:5px 9px}
+.ver-hd:hover{border-color:rgba(255,255,255,.34);color:#EDEFEC;background:rgba(255,255,255,.09)}
 .seg{display:inline-flex;padding:2px;border:1px solid rgba(255,255,255,.14);border-radius:3px;background:rgba(255,255,255,.04)}
 .seg button{background:none;border:0;color:#9DA3A9;font-size:12px;padding:5px 12px;border-radius:2px;letter-spacing:.02em;line-height:1.4;transition:color .15s,background .15s}
 .seg button.on{background:#F4F5F3;color:var(--ink);font-weight:600}
@@ -259,6 +262,9 @@ footer .fr{display:flex;justify-content:space-between;gap:16px;padding-top:14px;
 }
 @media (max-width:560px){
   .hero-in{padding:18px 16px 20px}
+  .hero-top{gap:10px;margin-bottom:20px}
+  .hero-right{gap:6px}
+  .ver-hd{padding:4px 8px;font-size:10.5px}
   main{padding:0 16px 32px;margin-top:18px}
   footer{padding:0 16px 38px}
   .stats{grid-template-columns:1fr 1fr;gap:14px 0;margin-bottom:18px}
@@ -303,9 +309,15 @@ footer .fr{display:flex;justify-content:space-between;gap:16px;padding-top:14px;
         <span class="brand-div"></span>
         <span class="brand-txt"><b>Honda South TC</b><span class="sub">新車銷售獎金 · 點數級距試算</span></span>
       </div>
+      <div class="hero-right">
       <div class="seg" id="periodSeg" role="group" aria-label="累計方式">
         <button type="button" data-period="all" class="on" aria-pressed="true">不分月份累計</button>
         <button type="button" data-period="month" aria-pressed="false">每月歸零</button>
+      </div>
+      <button type="button" class="ver ver-hd" data-ver-btn title="點一下可強制重新整理到最新版本">
+        <span class="ver-dot" data-ver-dot></span>
+        <span data-ver>v1.1.0</span>
+      </button>
       </div>
     </div>
 
@@ -461,9 +473,9 @@ footer .fr{display:flex;justify-content:space-between;gap:16px;padding-top:14px;
 <footer>
   <div class="fr">
     <span id="ftNote">Honda South TC · 本工具為個人試算，實際獎金以公司公告與薪資單為準。資料只存在這台裝置的瀏覽器，不會上傳。</span>
-    <button type="button" class="ver" id="verBtn" title="點一下可強制重新整理到最新版本">
-      <span class="ver-dot" id="verDot"></span>
-      <span id="verLabel">v1.1.0</span>
+    <button type="button" class="ver" data-ver-btn title="點一下可強制重新整理到最新版本">
+      <span class="ver-dot" data-ver-dot></span>
+      <span data-ver>v1.1.0</span>
     </button>
   </div>
 </footer>
@@ -1006,18 +1018,22 @@ footer .fr{display:flex;justify-content:space-between;gap:16px;padding-top:14px;
 window.APP_VERSION = '1.1.0';
 window.APP_BUILD   = '2026-10-31 13:12';
 (function(){
-  var label = document.getElementById('verLabel');
-  var dot   = document.getElementById('verDot');
-  var btn   = document.getElementById('verBtn');
-  if(label) label.textContent = 'v' + window.APP_VERSION + ' · ' + window.APP_BUILD;
+  var labels = document.querySelectorAll('[data-ver]');
+  var dots   = document.querySelectorAll('[data-ver-dot]');
+  var btns   = document.querySelectorAll('[data-ver-btn]');
 
+  /* 上方只顯示版本，頁尾顯示版本＋build 時間 */
+  for(var li=0; li<labels.length; li++){
+    labels[li].textContent = li === 0
+      ? 'v' + window.APP_VERSION
+      : 'v' + window.APP_VERSION + ' · ' + window.APP_BUILD;
+  }
   function mark(state){
-    if(!dot) return;
-    dot.className = 'ver-dot' + (state ? ' ' + state : '');
+    for(var i=0;i<dots.length;i++) dots[i].className = 'ver-dot' + (state ? ' ' + state : '');
   }
 
   /* 點版本號：清掉所有快取並重新載入（資料不受影響） */
-  if(btn){
+  Array.prototype.forEach.call(btns, function(btn){
     btn.addEventListener('click', function(){
       if(!confirm('強制重新整理到最新版本？\n（銷售紀錄不會消失）')) return;
       mark('checking');
@@ -1028,7 +1044,7 @@ window.APP_BUILD   = '2026-10-31 13:12';
       }
       Promise.all(jobs).then(function(){ location.reload(); }).catch(function(){ location.reload(); });
     });
-  }
+  });
 
   if(!('serviceWorker' in navigator) || location.protocol !== 'https:'){ mark(''); return; }
 
