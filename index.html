@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Honda South TC｜新車銷售獎金計算機</title>
-<meta name="theme-color" content="#14161A">
+<meta name="theme-color" content="#A8170F">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -298,6 +298,52 @@ footer .fr{display:flex;justify-content:space-between;gap:16px;padding-top:14px;
   *{animation:none!important;transition:none!important}
 }
 :focus-visible{outline:2px solid var(--red);outline-offset:2px}
+
+/* ══ 紅色識別主題（與選配金額 App 區隔） ══ */
+body{background:#8A160F}
+.hero{background:linear-gradient(178deg,#C41C12 0%,#A8170F 44%,#7E1109 100%)}
+.hero::after{background:linear-gradient(90deg,#FF6A5E 0%,rgba(255,106,94,.22) 52%,rgba(255,255,255,.12) 100%)}
+.brand .sub{color:rgba(255,255,255,.62)}
+.stat-label{color:rgba(255,255,255,.68)}
+.stat-value .cur{color:rgba(255,255,255,.52)}
+.stat-value .unit{color:rgba(255,255,255,.52)}
+.stat-off .stat-value{color:rgba(255,255,255,.45)}
+.stat{border-left-color:rgba(255,255,255,.16)}
+.bands{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18),inset 0 0 0 1px rgba(0,0,0,.06)}
+.band{border-right-color:rgba(0,0,0,.10)}
+.band.t0{background:#EEEFEC}
+.band.t1{background:#FBE1DD}
+.band.t2{background:#F5A9A1}
+.band.t3{background:#D8231A}
+.band .b-range{color:#3A1A17}
+.band .b-rate{color:rgba(58,26,23,.60)}
+.band.t3 .b-range{color:#fff}
+.band.t3 .b-rate{color:rgba(255,255,255,.88)}
+.veil{background:rgba(255,255,255,.76)}
+.needle{background:#14161A;box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 2px 10px rgba(0,0,0,.3)}
+.needle .nl{background:#14161A;border-color:#14161A;color:#fff}
+.needle .nl::after{border-top-color:#14161A}
+.needle.jump{animation:needleGlowR .95s ease-out}
+@keyframes needleGlowR{0%{box-shadow:0 0 0 1.5px #fff,0 0 0 rgba(255,255,255,0)}28%{box-shadow:0 0 0 2px #fff,0 0 26px 6px rgba(255,255,255,.95)}100%{box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 2px 10px rgba(0,0,0,.3)}}
+.scale-axis span{color:rgba(255,255,255,.55)}
+.scale-legend{color:rgba(255,255,255,.62)}
+.next{background:rgba(0,0,0,.20);border-left-color:#FFCFC8;color:rgba(255,255,255,.80)}
+.next b{color:#fff}
+.next .nt-gain{color:#FFD9D4}
+.next.done{border-left-color:#FFCFC8}
+.seg{border-color:rgba(255,255,255,.22);background:rgba(0,0,0,.12)}
+.seg button{color:rgba(255,255,255,.72)}
+.seg button:not(.on):hover{color:#fff}
+.ver.ver-hd{border-color:rgba(255,255,255,.26);background:rgba(0,0,0,.14);color:rgba(255,255,255,.82)}
+.ver.ver-hd:hover{border-color:rgba(255,255,255,.5);background:rgba(0,0,0,.24);color:#fff}
+footer{color:rgba(255,255,255,.66)}
+footer .fr{border-top-color:rgba(255,255,255,.18)}
+.ver{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.24);color:#F3DCD8}
+.ver:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.45);color:#fff}
+.ver-dot{background:#7BD48C;box-shadow:0 0 0 2px rgba(123,212,140,.22)}
+.ver-dot.stale{background:#FFD166;box-shadow:0 0 0 2px rgba(255,209,102,.25)}
+.card{box-shadow:0 1px 2px rgba(0,0,0,.14),0 10px 24px -14px rgba(0,0,0,.45)}
+
 </style>
 </head>
 <body>
@@ -1016,8 +1062,8 @@ footer .fr{display:flex;justify-content:space-between;gap:16px;padding-top:14px;
 </script>
 <script>
 /* 版本資訊：每次改版遞增，畫面上會顯示 build 時間 */
-window.APP_VERSION = '1.1.0';
-window.APP_BUILD   = '2026-10-31 13:12';
+window.APP_VERSION = '1.2.0';
+window.APP_BUILD   = '2026-10-31 17:42';
 (function(){
   var labels = document.querySelectorAll('[data-ver]');
   var dots   = document.querySelectorAll('[data-ver-dot]');
