@@ -1,4 +1,4 @@
-const VERSION = '1.2.1';
+const VERSION = '1.3.0';
 const CACHE = 'bonus-v' + VERSION;
 const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'logo.png', 'apple-touch-icon.png'];
 
